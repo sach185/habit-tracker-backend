@@ -23,11 +23,16 @@ module.exports.registerUser = async (req, res) => {
       });
 
       // save the user
-      newUser.save(function (err) {
+      newUser.save(function (err, result) {
+        console.log("asdiohoashdi", result);
         if (err) throw err;
         res
           .status(200)
-          .send({ success: true, message: "User Registered Successfully" });
+          .send({
+            success: true,
+            message: "User Registered Successfully",
+            user: result,
+          });
       });
     }
   });
