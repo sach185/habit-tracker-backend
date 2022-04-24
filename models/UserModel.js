@@ -14,6 +14,7 @@ var userSchema = new Schema({
       timeSlot: String,
       weeklyFrequency: Number,
       goalCount: { type: Number, default: 0 },
+      reward: { type: Boolean, default: false },
     },
   ],
 });
