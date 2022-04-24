@@ -1,5 +1,6 @@
 const express = require("express");
 const userRoutes = require("./routes/userRoutes");
+const goalRoutes = require("./routes/goalRoutes");
 var mongoose = require("mongoose");
 var config = require("./config");
 const app = express();
@@ -15,6 +16,7 @@ mongoose
 
 app.use(express.json());
 app.use("/user", userRoutes);
+app.use("/goals", goalRoutes);
 
 app.use("/", (req, res) => {
   res.statusCode = 404;

@@ -11,9 +11,9 @@ var userSchema = new Schema({
   goals: [
     {
       name: String,
-      timeSlot: Date,
+      timeSlot: String,
       weeklyFrequency: Number,
-      goalCount: Number,
+      goalCount: { type: Number, default: 0 },
     },
   ],
 });

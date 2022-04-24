@@ -6,9 +6,9 @@ module.exports.registerUser = async (req, res) => {
   const { firstname, lastname, email, password } = req.body;
 
   // check if email exists in the DB
-  User.find({ email: email }, async (err, doc) => {
+  User.findOne({ email: email }, async (err, doc) => {
     if (err) throw err;
-    if (doc.length) {
+    if (doc) {
       res.status(409).send({ success: false, error: "Record Exists" });
     } else {
       //Hash the password
@@ -36,13 +36,11 @@ module.exports.registerUser = async (req, res) => {
 module.exports.userLogin = async (req, res) => {
   const { email, password } = req.body;
   // check if email exists in the DB
-  User.find({ email: email }, async (err, doc) => {
+  User.findOne({ email: email }, async (err, doc) => {
     if (err) throw err;
-    if (doc.length) {
-      const checkPasswordMatch = await bcrypt.compare(
-        password,
-        doc[0].password
-      );
+
+    if (doc) {
+      const checkPasswordMatch = await bcrypt.compare(password, doc.password);
       // check if password matches
       if (!checkPasswordMatch) {
         return res
@@ -50,10 +48,9 @@ module.exports.userLogin = async (req, res) => {
           .send({ success: false, message: "Incorrect email or password" });
       }
 
-      let user = doc[0];
-      user.password = undefined;
+      doc.password = undefined;
 
-      res.status(200).send({ success: true, message: "Login Success", user });
+      res.status(200).send({ success: true, message: "Login Success", doc });
     } else {
       res.status(404).send({ success: false, error: "User not found" });
     }
