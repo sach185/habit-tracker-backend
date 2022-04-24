@@ -3,20 +3,20 @@ const User = require("../models/UserModel");
 const saltRounds = 10;
 
 module.exports.registerUser = async (req, res) => {
-  const { firstname, lastname, email, password } = req.body;
+  const { firstName, lastName, email, password } = req.body;
 
   // check if email exists in the DB
   User.findOne({ email: email }, async (err, doc) => {
     if (err) throw err;
     if (doc) {
-      res.status(409).send({ success: false, error: "Record Exists" });
+      res.status(409).send({ success: false, message: "Record Exists" });
     } else {
       //Hash the password
       const pwHash = await bcrypt.hash(password, saltRounds);
 
       var newUser = User({
-        firstname,
-        lastname,
+        firstname: firstName,
+        lastname: lastName,
         email,
         password: pwHash,
         goalLimit: 4,
@@ -50,9 +50,11 @@ module.exports.userLogin = async (req, res) => {
 
       doc.password = undefined;
 
-      res.status(200).send({ success: true, message: "Login Success", doc });
+      res
+        .status(200)
+        .send({ success: true, message: "Login Success", user: doc });
     } else {
-      res.status(404).send({ success: false, error: "User not found" });
+      res.status(404).send({ success: false, message: "User not found" });
     }
   });
 };

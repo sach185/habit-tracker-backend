@@ -1,10 +1,11 @@
 const express = require("express");
+const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const goalRoutes = require("./routes/goalRoutes");
 var mongoose = require("mongoose");
 var config = require("./config");
 const app = express();
-
+app.use(cors());
 mongoose
   .connect(config.getDbConnectionString())
   .then(() => {

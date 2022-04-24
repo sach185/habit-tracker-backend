@@ -71,8 +71,6 @@ module.exports.deleteGoal = async (req, res) => {
     },
     (err, doc) => {
       if (err) throw err;
-
-      console.log("*** Dele: ", doc);
       if (doc.acknowledged && doc.modifiedCount > 0) {
         res.send({ success: true, message: "Deleted Successfully" });
       } else {
