@@ -27,10 +27,6 @@ app.use("/", (req, res) => {
   });
 });
 
-app.get("/test", (req, res) => {
-  res.send("Hello from Express!");
-});
-
 const jobs = require("./scheduled.jobs");
 jobs.start();
 
