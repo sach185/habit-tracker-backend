@@ -19,14 +19,6 @@ app.use(express.json());
 app.use("/user", userRoutes);
 app.use("/goals", goalRoutes);
 
-app.use("/", (req, res) => {
-  res.statusCode = 404;
-  res.json({
-    status: "error",
-    message: "Not Found",
-  });
-});
-
 const jobs = require("./scheduled.jobs");
 jobs.start();
 
