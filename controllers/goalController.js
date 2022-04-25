@@ -1,12 +1,20 @@
 const User = require("../models/UserModel");
 
 module.exports.createOrUpdateGoal = async (req, res) => {
-  const { goalId, name, timeSlot, weeklyFrequency, goalCount, userId } =
+  const { goalId, name, timeSlot, weeklyFrequency, reward, goalCount, userId } =
     req.body;
 
   //Check if user exists
   User.findOne({ _id: userId }, "goalLimit goals", (err, doc) => {
-    if (err) throw err;
+    if (err)
+      return res
+        .status(404)
+        .send({ success: false, message: "Failed", error: err });
+
+    let goalLimit = doc.goalLimit;
+    if (reward) {
+      goalLimit = goalLimit + 1;
+    }
 
     //If goal id is present in body then update
     if (goalId) {
@@ -18,10 +26,17 @@ module.exports.createOrUpdateGoal = async (req, res) => {
             "goals.$.timeSlot": timeSlot,
             "goals.$.weeklyFrequency": weeklyFrequency,
             "goals.$.goalCount": goalCount,
+            "goals.$.reward": reward,
+            goalLimit: goalLimit,
           },
         },
         (err, doc) => {
-          if (err) throw err;
+          if (err)
+            return res.status(400).send({
+              success: false,
+              message: "Update Operation failed",
+              error: err,
+            });
 
           if (doc.acknowledged) {
             res.send({ success: true, message: "Updated Successfully" });
@@ -42,7 +57,10 @@ module.exports.createOrUpdateGoal = async (req, res) => {
         doc.goals.push(newGoal);
 
         User.updateOne({ _id: userId }, doc, (err, updDoc) => {
-          if (err) throw err;
+          if (err)
+            return res
+              .status(400)
+              .send({ success: false, message: "Failed", error: err });
           if (updDoc.acknowledged) {
             res.send({
               success: true,
@@ -70,7 +88,10 @@ module.exports.deleteGoal = async (req, res) => {
       },
     },
     (err, doc) => {
-      if (err) throw err;
+      if (err)
+        return res
+          .status(400)
+          .send({ success: false, message: "Failed", error: err });
       if (doc.acknowledged && doc.modifiedCount > 0) {
         res.send({ success: true, message: "Deleted Successfully" });
       } else {
@@ -98,8 +119,19 @@ module.exports.getGoal = async (req, res) => {
 module.exports.getAllGoals = async (req, res) => {
   let { userId } = req.params;
 
+  if (
+    userId === null ||
+    typeof userId === undefined ||
+    userId === "undefined"
+  ) {
+    return res.status(400).send({ success: false, message: "Failed" });
+  }
+
   User.findOne({ _id: userId }, "goals", (err, doc) => {
-    if (err) throw err;
+    if (err)
+      return res
+        .status(400)
+        .send({ success: false, message: "Failed", error: err });
 
     res.send({ success: true, data: doc.goals });
   });

@@ -27,6 +27,9 @@ app.use("/", (req, res) => {
   });
 });
 
+const jobs = require("./scheduled.jobs");
+jobs.start();
+
 app.listen(8080, () => {
   console.log("app listening at http://localhost:8080");
 });
