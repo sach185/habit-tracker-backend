@@ -27,9 +27,11 @@ app.use("/", (req, res) => {
   });
 });
 
+app.get('/test', (req, res) => { res.send('Hello from Express!')
+
 const jobs = require("./scheduled.jobs");
 jobs.start();
 
-app.listen(8080, () => {
-  console.log("app listening at http://localhost:8080");
+app.listen(process.env.PORT || 8080, () => {
+  console.log("App is running");
 });
