@@ -1,5 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/UserModel");
+const { getToken } = require("../util");
+
 const saltRounds = 10;
 
 module.exports.registerUser = async (req, res) => {
@@ -32,10 +34,14 @@ module.exports.registerUser = async (req, res) => {
             .status(400)
             .send({ success: false, message: "Failed", error: err });
 
+        result.password = undefined;
+        let userObject = result.toObject();
+        userObject.token = getToken(userObject);
+
         res.status(200).send({
           success: true,
           message: "User Registered Successfully",
-          user: result,
+          user: userObject,
         });
       });
     }
@@ -64,10 +70,14 @@ module.exports.userLogin = async (req, res) => {
         }
 
         doc.password = undefined;
+        let userObject = doc.toObject();
+        userObject.token = getToken(userObject);
 
-        res
-          .status(200)
-          .send({ success: true, message: "Login Success", user: doc });
+        res.status(200).send({
+          success: true,
+          message: "Login Success",
+          user: userObject,
+        });
       } else {
         res.status(404).send({ success: false, message: "User not found" });
       }

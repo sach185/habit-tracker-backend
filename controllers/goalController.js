@@ -1,11 +1,12 @@
 const User = require("../models/UserModel");
 
 module.exports.createOrUpdateGoal = async (req, res) => {
-  const { goalId, name, timeSlot, weeklyFrequency, reward, goalCount, userId } =
+  const authUser = req.user;
+  const { goalId, name, timeSlot, weeklyFrequency, reward, goalCount } =
     req.body;
 
   //Check if user exists
-  User.findOne({ _id: userId }, "goalLimit goals", (err, doc) => {
+  User.findOne({ _id: authUser._id }, "goalLimit goals", (err, doc) => {
     if (err)
       return res
         .status(404)
@@ -56,7 +57,7 @@ module.exports.createOrUpdateGoal = async (req, res) => {
 
         doc.goals.push(newGoal);
 
-        User.updateOne({ _id: userId }, doc, (err, updDoc) => {
+        User.updateOne({ _id: authUser._id }, doc, (err, updDoc) => {
           if (err)
             return res
               .status(400)
@@ -79,9 +80,10 @@ module.exports.createOrUpdateGoal = async (req, res) => {
 };
 
 module.exports.deleteGoal = async (req, res) => {
-  let { userId, goalId } = req.params;
+  const authUser = req.user;
+  let { goalId } = req.params;
   User.updateOne(
-    { _id: userId },
+    { _id: authUser._id },
     {
       $pull: {
         goals: { _id: goalId },
@@ -102,9 +104,10 @@ module.exports.deleteGoal = async (req, res) => {
 };
 
 module.exports.getGoal = async (req, res) => {
-  let { goalId, userId } = req.params;
+  const authUser = req.user;
+  let { goalId } = req.params;
 
-  User.findOne({ _id: userId })
+  User.findOne({ _id: authUser._id })
     .select({
       goals: { $elemMatch: { _id: goalId } },
     })
@@ -117,7 +120,7 @@ module.exports.getGoal = async (req, res) => {
 };
 
 module.exports.getAllGoals = async (req, res) => {
-  let { userId } = req.params;
+  const userId = req.user._id;
 
   if (
     userId === null ||
