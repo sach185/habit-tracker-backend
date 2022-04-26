@@ -14,13 +14,12 @@ https://habit-tracker-demo.herokuapp.com/user/register
 --- Habit / Goal routes ---
 
 1. Fetch User Goals - GET
-https://habit-tracker-demo.herokuapp.com/goals/:userId
+https://habit-tracker-demo.herokuapp.com/goals
 
 2. Create/Update a Goal - POST
 https://habit-tracker-demo.herokuapp.com/goals
 
 3. Delete Goal - DELETE
-https://habit-tracker-demo.herokuapp.com/goals/:userId/:goalId
+https://habit-tracker-demo.herokuapp.com/goals/:goalId
 
 
-TODO : JWT authentication and make routes cleaner.
