@@ -1,5 +1,6 @@
 const User = require("../models/UserModel");
 
+//Create and Update goal API handling
 module.exports.createOrUpdateGoal = async (req, res) => {
   const authUser = req.user;
   const { goalId, name, timeSlot, weeklyFrequency, reward, goalCount } =
@@ -79,6 +80,7 @@ module.exports.createOrUpdateGoal = async (req, res) => {
   });
 };
 
+//Delete goal API handling
 module.exports.deleteGoal = async (req, res) => {
   const authUser = req.user;
   let { goalId } = req.params;
@@ -103,6 +105,7 @@ module.exports.deleteGoal = async (req, res) => {
   );
 };
 
+//Get a goal by id API handling
 module.exports.getGoal = async (req, res) => {
   const authUser = req.user;
   let { goalId } = req.params;
@@ -119,6 +122,7 @@ module.exports.getGoal = async (req, res) => {
     });
 };
 
+//Get all goals API handling
 module.exports.getAllGoals = async (req, res) => {
   const userId = req.user._id;
 

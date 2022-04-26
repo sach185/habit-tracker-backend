@@ -4,6 +4,7 @@ const { getToken } = require("../util");
 
 const saltRounds = 10;
 
+//Register API handling
 module.exports.registerUser = async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
 
@@ -48,6 +49,7 @@ module.exports.registerUser = async (req, res) => {
   });
 };
 
+//Login API handling
 module.exports.userLogin = async (req, res) => {
   const { email, password } = req.body;
   // check if email exists in the DB
