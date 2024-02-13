@@ -4,16 +4,23 @@ const { Mood, MonthlyMood, YearlyMood } = require("../models/MoodModel");
 
 //Create and Update goal API handling
 module.exports.postUserMood = async (req, res) => {
-    const { userId, rating, notes, date } = req.body;
+    const { userId, rating, notes, date, moodId } = req.body;
 
     try {
-        const moodDocument = new Mood({ userId, rating, notes, timestamp: date });
-        await moodDocument.save();
 
-        res.status(201).json({ message: 'Daily rating and notes stored successfully' });
+        if (moodId) {
+            // If moodId is present, update the existing mood document
+            await Mood.findByIdAndUpdate(moodId, { userId, rating, notes, timestamp: date });
+            res.status(200).json({ message: 'Daily rating and notes updated successfully' });
+        } else {
+            // If moodId is not present, create a new mood document
+            const moodDocument = new Mood({ userId, rating, notes, timestamp: date });
+            await moodDocument.save();
+            res.status(201).json({ message: 'Daily rating and notes stored successfully' });
+        }
 
          // Update monthly and yearly ratings
-         await updateMonthlyAndYearlyRatings();
+         await updateMonthlyAndYearlyRatings(userId, date);
     } catch (error) {
         console.error('Error storing daily rating and notes:', error);
         res.status(500).json({ message: 'Internal Server Error' });
@@ -21,93 +28,48 @@ module.exports.postUserMood = async (req, res) => {
 };
 
 
-// Calculate and store monthly ratings
-async function calculateAndStoreMonthlyRatings() {
-    try {
-        const monthlyRatings = await Mood.aggregate([
-            {
-                $group: {
-                    _id: {
-                        userId: '$userId',
-                        year: { $year: '$timestamp' },
-                        month: { $month: '$timestamp' }
-                    },
-                    avgRating: { $avg: '$rating' }
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    userId: '$_id.userId',
-                    year: '$_id.year',
-                    month: '$_id.month',
-                    avgRating: 1
-                }
-            }
-        ]);
+const updateMonthlyRating = async (userId, year, month) => {
+    const firstDayOfMonth = new Date(year, month, 1);
+    const lastDayOfMonth = new Date(year, month + 1, 0);
+    const ratings = await Mood.find({
+        userId,
+        timestamp: { $gte: firstDayOfMonth, $lte: lastDayOfMonth }
+    }).select('rating');
 
-        // Ensure uniqueness by removing duplicates for each user-month combination
-        const uniqueMonthlyRatings = monthlyRatings.reduce((acc, rating) => {
-            const key = `${rating.userId}_${rating.year}_${rating.month}`;
-            if (!acc[key]) {
-                acc[key] = rating;
-            }
-            return acc;
-        }, {});
+    const totalRating = ratings.reduce((acc, mood) => acc + mood.rating, 0);
+    const averageRating = totalRating / ratings.length || 0;
 
-        await MonthlyMood.insertMany(Object.values(uniqueMonthlyRatings));
+    await MonthlyMood.findOneAndUpdate(
+        { userId, year, month },
+        { userId, year, month, avgRating: averageRating },
+        { upsert: true }
+    );
+};
 
-        console.log('Monthly ratings calculated and stored successfully!');
-    } catch (error) {
-        console.error('Error calculating and storing monthly ratings:', error);
-    }
-}
+const updateYearlyRating = async (userId, year) => {
+    const ratings = await Mood.find({
+        userId,
+        timestamp: { $gte: new Date(year, 0, 1), $lte: new Date(year, 11, 31, 23, 59, 59, 999) }
+    }).select('rating');
 
-// Calculate and store yearly ratings
-async function calculateAndStoreYearlyRatings() {
-    try {
-        const yearlyRatings = await MonthlyMood.aggregate([
-            {
-                $group: {
-                    _id: {
-                        userId: '$userId',
-                        year: '$year'
-                    },
-                    avgRating: { $avg: '$avgRating' }
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    userId: '$_id.userId',
-                    year: '$_id.year',
-                    avgRating: 1
-                }
-            }
-        ]);
+    const totalRating = ratings.reduce((acc, mood) => acc + mood.rating, 0);
+    const averageRating = totalRating / ratings.length || 0;
 
-        // Ensure uniqueness by removing duplicates for each user-year combination
-        const uniqueYearlyRatings = yearlyRatings.reduce((acc, rating) => {
-            const key = `${rating.userId}_${rating.year}`;
-            if (!acc[key]) {
-                acc[key] = rating;
-            }
-            return acc;
-        }, {});
+    await YearlyMood.findOneAndUpdate(
+        { userId, year },
+        { userId, year, avgRating: averageRating },
+        { upsert: true }
+    );
+};
 
-        await YearlyMood.insertMany(Object.values(uniqueYearlyRatings));
+const updateMonthlyAndYearlyRatings = async (userId, dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = date.getMonth();
 
-        console.log('Yearly ratings calculated and stored successfully!');
-    } catch (error) {
-        console.error('Error calculating and storing yearly ratings:', error);
-    }
-}
-
-
-async function updateMonthlyAndYearlyRatings() {
-    await calculateAndStoreMonthlyRatings();
-    await calculateAndStoreYearlyRatings();
-}
+    await updateMonthlyRating(userId, year, month);
+    await updateYearlyRating(userId, year);
+};
 
 //Fetch yearly average
 module.exports.getYearlyMood = async (req, res) => {
