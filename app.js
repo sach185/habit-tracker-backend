@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const goalRoutes = require("./routes/goalRoutes");
+const moodRoutes = require("./routes/moodRoutes");
 var mongoose = require("mongoose");
 var config = require("./config");
 const app = express();
@@ -21,7 +22,9 @@ app.use(express.json());
 
 //User and Goal routes
 app.use("/user", userRoutes);
+app.use("/mood", moodRoutes);
 app.use("/goals", goalRoutes);
+
 
 //Landing page
 app.use("/", (req, res) => {
